@@ -1,0 +1,2456 @@
+<!DOCTYPE html>
+<!--
+游戏名称：创业生存挑战
+版本号：v2.0
+更新日期：2026-03-03
+-->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创业生存挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: auto;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 1260px;
+            min-height: 600px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 580px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        .game-header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .game-header h1 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 3px;
+        }
+
+        .turn-info {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+            max-height: 100%;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 0.75em;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .upgrades-section {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .upgrades-section h2 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .upgrade-card {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+        }
+
+        .upgrade-card h3 {
+            color: #667eea;
+            margin-bottom: 4px;
+            font-size: 0.8em;
+        }
+
+        .upgrade-card p {
+            color: #666;
+            font-size: 0.7em;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        .upgrade-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75em;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        .upgrade-btn:hover {
+            background: #764ba2;
+        }
+
+        .upgrade-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .event-card h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+
+        .event-card p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            flex: 1;
+            font-size: 0.95em;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .choice-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-over h2 {
+            color: #e74c3c;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .restart-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+        }
+
+        .restart-btn:hover {
+            background: #764ba2;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 进度条样式 */
+        .progress-container {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 18px;
+            background: #e0e0e0;
+            border-radius: 9px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 资源上限提示 */
+        .resource-cap-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 0.8em;
+            color: #856404;
+            text-align: center;
+        }
+
+        .resource-cap-info strong {
+            color: #d39e00;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .milestone-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .milestone-marker {
+            width: 2px;
+            height: 100%;
+            background: rgba(255,255,255,0.5);
+        }
+
+        /* 菜单按钮 */
+        .menu-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+        }
+
+        /* 模态窗口 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+
+        .modal-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .story-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .story-item h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .talent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .talent-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .talent-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .talent-card.selected {
+            border-color: #27ae60;
+            background: #e8f5e9;
+        }
+
+        .talent-card h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        /* 投资人关系卡片 */
+        .investor-card {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .investor-card h3 {
+            font-size: 0.8em;
+            color: #333;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .investor-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 6px;
+        }
+
+        .investor-stat-item {
+            background: rgba(255,255,255,0.7);
+            padding: 4px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .investor-stat-item .label {
+            font-size: 0.65em;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .investor-stat-item .value {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .investor-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .investor-btn {
+            background: #e17055;
+            color: white;
+            border: none;
+            padding: 5px 6px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.7em;
+            transition: background 0.3s ease;
+        }
+
+        .investor-btn:hover {
+            background: #d63031;
+        }
+
+        .investor-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 900px) {
+            body {
+                display: block;
+                padding: 8px 4px;
+                overflow-y: auto;
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
+            .game-container {
+                min-height: auto;
+                height: auto;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 12px;
+            }
+
+            .game-header h1 {
+                font-size: 1.4em;
+            }
+
+            .left-panel {
+                order: 2;
+            }
+
+            .right-panel {
+                order: 3;
+            }
+
+            .upgrades-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .event-card {
+                padding: 14px;
+            }
+
+            .choice-btn {
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            .menu-btn {
+                top: 10px;
+                right: 10px;
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
+
+            .modal-content {
+                width: 94vw;
+                max-width: none;
+                padding: 18px;
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="menu-btn" onclick="openModal()">📊 菜单</button>
+
+        <div class="game-header">
+            <h1>🚀 创业生存挑战</h1>
+            <p class="turn-info">第 <span id="turn">1</span> 回合</p>
+        </div>
+
+        <div class="left-panel">
+            <div class="game-stats" id="stats">
+                <div class="stat-card">
+                    <h3>💰 资金</h3>
+                    <div class="stat-value" id="money">100</div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" id="money-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>👥 团队士气</h3>
+                    <div class="stat-value" id="morale">100</div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" id="morale-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>💡 技术水平</h3>
+                    <div class="stat-value" id="tech">50</div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" id="tech-bar" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>⭐ 用户满意度</h3>
+                    <div class="stat-value" id="users">50</div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" id="users-bar" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 投资人关系卡片 -->
+            <div class="investor-card">
+                <h3>💼 投资人关系</h3>
+                <div class="investor-stats">
+                    <div class="investor-stat-item">
+                        <div class="label">满意度</div>
+                        <div class="value" id="investor-satisfaction">80</div>
+                    </div>
+                    <div class="investor-stat-item">
+                        <div class="label">持股</div>
+                        <div class="value" id="equity">100%</div>
+                    </div>
+                    <div class="investor-stat-item">
+                        <div class="label">自主权</div>
+                        <div class="value" id="autonomy">100%</div>
+                    </div>
+                    <div class="investor-stat-item">
+                        <div class="label">轮次</div>
+                        <div class="value" id="funding-rounds">0</div>
+                    </div>
+                </div>
+                <div class="investor-actions">
+                    <button class="investor-btn" onclick="seekFunding()">寻求融资</button>
+                    <button class="investor-btn" onclick="buybackEquity()">回购股权</button>
+                </div>
+            </div>
+
+            <div class="upgrades-section" id="upgrades-section">
+                <h2>🏢 升级与招募</h2>
+                <div class="upgrades-grid" id="upgrades"></div>
+                <div id="ability-cards-container"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <!-- 进度条 -->
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>创业进度</span>
+                    <span id="progress-text">0/100 回合 | 0/10 关卡</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar" style="width: 1%">1%</div>
+                    <div class="milestone-markers">
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                        <div class="milestone-marker"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 资源上限提示 -->
+            <div class="resource-cap-info" id="resource-cap-info">
+                💡 当前资源上限：<strong id="current-cap">150</strong> | 下一阶段（<span id="next-cap-turn">20</span>回合）：<strong id="next-cap">250</strong>
+            </div>
+
+            <div class="event-card" id="event-card">
+                <h2 id="event-title">欢迎来到创业世界！</h2>
+                <p id="event-description">你刚刚创立了一家科技创业公司。你需要管理资金、团队士气、技术水平和用户满意度。如果任何一项指标降到0，游戏就会结束。准备好迎接挑战了吗？</p>
+                <div class="choices" id="choices">
+                    <button class="choice-btn" onclick="startGame()">开始游戏</button>
+                </div>
+            </div>
+
+            <div class="game-over hidden" id="game-over">
+                <h2>游戏结束</h2>
+                <p id="game-over-reason"></p>
+                <p>你坚持了 <span id="final-turn">0</span> 回合</p>
+                <button class="restart-btn" onclick="location.reload()">重新开始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态窗口 -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchTab('stats')">📊 统计</button>
+                <button class="modal-tab" onclick="switchTab('story')">📖 剧情回顾</button>
+                <button class="modal-tab" onclick="switchTab('breakthrough')">💎 突破</button>
+            </div>
+
+            <!-- 统计面板 -->
+            <div class="tab-content active" id="stats-tab">
+                <h2>游戏统计</h2>
+                <div class="stat-item">
+                    <span>当前回合</span>
+                    <span id="stat-turn">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>最高回合</span>
+                    <span id="stat-max-turn">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>游玩时间</span>
+                    <span id="stat-time">0分钟</span>
+                </div>
+                <div class="stat-item">
+                    <span>解锁成就</span>
+                    <span id="stat-achievements">0/12</span>
+                </div>
+                <div class="stat-item">
+                    <span>使用能力卡</span>
+                    <span id="stat-cards">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>购买升级</span>
+                    <span id="stat-upgrades">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>触发剧情</span>
+                    <span id="stat-story">0/20</span>
+                </div>
+                <div class="stat-item">
+                    <span>完成关卡</span>
+                    <span id="stat-milestones">0/10</span>
+                </div>
+            </div>
+
+            <!-- 剧情回顾面板 -->
+            <div class="tab-content" id="story-tab">
+                <h2>创业历程</h2>
+                <div id="story-list"></div>
+            </div>
+
+            <!-- 突破面板 -->
+            <div class="tab-content" id="breakthrough-tab">
+                <h2>资源突破</h2>
+                <div id="breakthrough-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            turn: 1,
+            money: 100,
+            morale: 100,
+            tech: 50,
+            users: 50,
+            upgrades: {
+                developer: 0,
+                marketer: 0,
+                office: 0,
+                server: 0
+            },
+            abilityCards: [], // 拥有的能力卡
+            usedCards: [], // 已使用的能力卡
+            achievements: [], // 已解锁的成就
+            storyEvents: [], // 已触发的剧情事件
+            breakthroughs: {}, // 突破状态
+            talents: {}, // 已选择的天赋
+            startTime: Date.now(), // 游戏开始时间
+            maxTurn: 0, // 最高回合数
+            crisisLevel: 0, // 危机等级（每次触发危机后+2.5%）
+            pendingRewards: [], // 待发放的奖励队列
+            // 投资人关系系统
+            investorSatisfaction: 80, // 投资人满意度（0-100）
+            equity: 100, // 持有股权（0-100%）
+            autonomy: 100, // 自主权（0-100%）
+            totalFunding: 0, // 累计融资额
+            fundingRounds: 0, // 融资轮次
+            // 竞争对手系统（第50回合后激活）
+            competitorActive: false, // 竞争对手是否激活
+            competitorStrength: 0, // 竞争对手实力（0-200）
+            acceptedFunding50: null, // 第50回合融资选择（true/false/null）
+            lastCompetitorAttack: 0 // 上次竞争对手攻击回合
+        };
+
+        // 升级项目（带负面效果，危机改为统一判定）
+        const upgradeOptions = [
+            {
+                id: 'developer',
+                name: '招募开发者',
+                cost: 30,
+                description: '提升技术水平，每回合+2技术',
+                sideEffect: '管理难度增加：-1士气，规模成本',
+                effect: () => {
+                    gameState.tech += 2;
+                },
+                negativeEffect: () => {
+                    gameState.morale -= 1;
+                }
+            },
+            {
+                id: 'marketer',
+                name: '招募市场人员',
+                cost: 25,
+                description: '提升用户满意度，每回合+2用户',
+                sideEffect: '推广成本：-5资金，规模成本',
+                effect: () => {
+                    gameState.users += 2;
+                },
+                negativeEffect: () => {
+                    gameState.money -= 5;
+                }
+            },
+            {
+                id: 'office',
+                name: '升级办公室',
+                cost: 50,
+                description: '提升团队士气，每回合+3士气',
+                sideEffect: '租金成本：-10资金，规模成本',
+                effect: () => {
+                    gameState.morale += 3;
+                },
+                negativeEffect: () => {
+                    gameState.money -= 10;
+                }
+            },
+            {
+                id: 'server',
+                name: '升级服务器',
+                cost: 40,
+                description: '提升技术和用户体验，每回合+1技术+1用户',
+                sideEffect: '服务器费用：-8资金，规模成本',
+                effect: () => {
+                    gameState.tech += 1;
+                    gameState.users += 1;
+                },
+                negativeEffect: () => {
+                    gameState.money -= 8;
+                }
+            }
+        ];
+
+        // 特殊能力卡库
+        const abilityCards = [
+            {
+                id: 'emergency_funding',
+                name: '🚨 紧急融资',
+                description: '立即获得80资金',
+                effect: () => {
+                    gameState.money += 80;
+                    return '获得了80资金！';
+                }
+            },
+            {
+                id: 'team_motivation',
+                name: '💪 团队激励',
+                description: '所有资源+15',
+                effect: () => {
+                    gameState.money += 15;
+                    gameState.morale += 15;
+                    gameState.tech += 15;
+                    gameState.users += 15;
+                    return '所有资源增加15点！';
+                }
+            },
+            {
+                id: 'tech_breakthrough',
+                name: '⚡ 技术突破',
+                description: '技术水平+40',
+                effect: () => {
+                    gameState.tech += 40;
+                    return '技术水平大幅提升！';
+                }
+            },
+            {
+                id: 'viral_marketing',
+                name: '📱 病毒营销',
+                description: '用户满意度+50',
+                effect: () => {
+                    gameState.users += 50;
+                    return '用户数量暴增！';
+                }
+            },
+            {
+                id: 'cost_reduction',
+                name: '💰 成本优化',
+                description: '下3次升级半价',
+                effect: () => {
+                    gameState.discountCount = 3;
+                    return '接下来3次升级半价！';
+                }
+            },
+            {
+                id: 'crisis_shield',
+                name: '🛡️ 危机护盾',
+                description: '下次负面事件效果减半',
+                effect: () => {
+                    gameState.shieldActive = true;
+                    return '下次负面影响减半！';
+                }
+            },
+            {
+                id: 'double_income',
+                name: '💎 双倍收益',
+                description: '未来5回合资金增长翻倍',
+                effect: () => {
+                    gameState.doubleIncomeRounds = 5;
+                    return '未来5回合资金增长翻倍！';
+                }
+            },
+            {
+                id: 'talent_magnet',
+                name: '🌟 人才磁铁',
+                description: '士气+30，技术+20',
+                effect: () => {
+                    gameState.morale += 30;
+                    gameState.tech += 20;
+                    return '吸引了顶尖人才！';
+                }
+            }
+        ];
+
+        // 成就系统
+        const achievements = [
+            { id: 'survive_10', name: '初出茅庐', description: '生存10回合', check: () => gameState.turn >= 10 },
+            { id: 'survive_30', name: '小有成就', description: '生存30回合', check: () => gameState.turn >= 30 },
+            { id: 'survive_50', name: '行业老兵', description: '生存50回合', check: () => gameState.turn >= 50 },
+            { id: 'survive_100', name: '创业传奇', description: '完成100回合', check: () => gameState.turn >= 100 },
+            { id: 'money_100', name: '资金充裕', description: '资金达到100', check: () => gameState.money >= 100 },
+            { id: 'money_150', name: '财务自由', description: '资金达到150', check: () => gameState.money >= 150 },
+            { id: 'all_80', name: '全面发展', description: '所有资源同时达到80', check: () => gameState.money >= 80 && gameState.morale >= 80 && gameState.tech >= 80 && gameState.users >= 80 },
+            { id: 'all_100', name: '完美平衡', description: '所有资源同时达到100', check: () => gameState.money >= 100 && gameState.morale >= 100 && gameState.tech >= 100 && gameState.users >= 100 },
+            { id: 'upgrade_5', name: '投资专家', description: '购买5次升级', check: () => Object.values(gameState.upgrades).reduce((a,b) => a+b, 0) >= 5 },
+            { id: 'upgrade_10', name: '升级大师', description: '购买10次升级', check: () => Object.values(gameState.upgrades).reduce((a,b) => a+b, 0) >= 10 },
+            { id: 'use_card_3', name: '策略家', description: '使用3张能力卡', check: () => gameState.usedCards.length >= 3 },
+            { id: 'use_card_5', name: '卡牌大师', description: '使用5张能力卡', check: () => gameState.usedCards.length >= 5 }
+        ];
+
+        // 突破系统（资源达到200时解锁）
+        const breakthroughs = {
+            money: {
+                name: '💎 资本突破',
+                description: '资金达到200，解锁投资系统',
+                unlockMessage: '恭喜！资金突破200，解锁投资系统！\n现在可以选择投资天赋。',
+                talents: [
+                    { id: 'passive_income', name: '被动收入', description: '每回合额外获得5资金', effect: () => { gameState.money += 5; } },
+                    { id: 'cost_master', name: '成本大师', description: '所有升级永久8折', passive: true },
+                    { id: 'investment_expert', name: '投资专家', description: '资金增长速度+50%', passive: true }
+                ]
+            },
+            morale: {
+                name: '🔥 凝聚力突破',
+                description: '士气达到200，解锁企业文化系统',
+                unlockMessage: '恭喜！士气突破200，解锁企业文化系统！\n团队凝聚力大幅提升。',
+                talents: [
+                    { id: 'loyalty', name: '忠诚文化', description: '士气不会低于20', passive: true },
+                    { id: 'efficiency', name: '高效团队', description: '所有升级效果+50%', passive: true },
+                    { id: 'innovation', name: '创新氛围', description: '每回合+3技术', effect: () => { gameState.tech += 3; } }
+                ]
+            },
+            tech: {
+                name: '⚡ 创新力突破',
+                description: '技术达到200，解锁专利系统',
+                unlockMessage: '恭喜！技术突破200，解锁专利系统！\n技术优势转化为持续收益。',
+                talents: [
+                    { id: 'patent_income', name: '专利授权', description: '每回合技术转化为资金（技术×0.01）', effect: () => { gameState.money += gameState.tech * 0.01; } },
+                    { id: 'tech_leader', name: '技术领先', description: '技术增长速度+50%', passive: true },
+                    { id: 'auto_upgrade', name: '自动优化', description: '每回合+2用户', effect: () => { gameState.users += 2; } }
+                ]
+            },
+            users: {
+                name: '🌟 品牌力突破',
+                description: '用户达到200，解锁生态系统',
+                unlockMessage: '恭喜！用户突破200，解锁生态系统！\n品牌效应开始显现。',
+                talents: [
+                    { id: 'viral_growth', name: '病毒增长', description: '每回合用户自增长（用户×0.02）', effect: () => { gameState.users += gameState.users * 0.02; } },
+                    { id: 'brand_power', name: '品牌溢价', description: '用户转化资金效率+100%', passive: true },
+                    { id: 'ecosystem', name: '生态闭环', description: '每回合+5士气', effect: () => { gameState.morale += 5; } }
+                ]
+            }
+        };
+
+        // 危机事件库
+        const crisisEvents = {
+            tech_debt: {
+                title: '⚠️ 技术债务危机',
+                description: '快速扩张的技术团队留下了大量技术债务，代码质量下降，bug频发，必须立即处理！',
+                choices: [
+                    { text: '重构代码（-40资金，-20士气，+15技术）', effect: () => ({ money: -40, morale: -20, tech: 15 }) },
+                    { text: '加班修复（-25士气，+10技术）', effect: () => ({ morale: -25, tech: 10 }) },
+                    { text: '暂时忽略（-15技术，-20用户）', effect: () => ({ tech: -15, users: -20 }) }
+                ]
+            },
+            over_promise: {
+                title: '⚠️ 过度承诺危机',
+                description: '市场团队为了获客做出了过多承诺，现在用户发现产品功能不符预期，投诉激增！',
+                choices: [
+                    { text: '紧急开发功能（-50资金，-30技术，+10用户）', effect: () => ({ money: -50, tech: -30, users: 10 }) },
+                    { text: '道歉补偿（-35资金，-15用户）', effect: () => ({ money: -35, users: -15 }) },
+                    { text: '调整宣传策略（-20士气，-25用户）', effect: () => ({ morale: -20, users: -25 }) }
+                ]
+            },
+            cost_overrun: {
+                title: '⚠️ 成本失控危机',
+                description: '办公室升级后，各项运营成本急剧上升，财务压力巨大，必须削减开支！',
+                choices: [
+                    { text: '裁员降本（-30士气，+30资金）', effect: () => ({ morale: -30, money: 30 }) },
+                    { text: '削减福利（-20士气，+20资金）', effect: () => ({ morale: -20, money: 20 }) },
+                    { text: '寻求融资（-10用户，+40资金）', effect: () => ({ users: -10, money: 40 }) }
+                ]
+            },
+            tech_failure: {
+                title: '⚠️ 技术故障危机',
+                description: '服务器突然宕机，大量用户无法访问，技术团队正在紧急抢修！',
+                choices: [
+                    { text: '紧急修复（-30资金，-25技术，-10用户）', effect: () => ({ money: -30, tech: -25, users: -10 }) },
+                    { text: '切换备用方案（-40资金，-15用户）', effect: () => ({ money: -40, users: -15 }) },
+                    { text: '等待自动恢复（-30用户，-20士气）', effect: () => ({ users: -30, morale: -20 }) }
+                ]
+            },
+            cash_crisis: {
+                title: '💸 资金链断裂危机',
+                description: '公司账户资金告急，如果不立即筹措资金，可能面临破产！',
+                choices: [
+                    { text: '紧急融资（-25技术，-20用户，+60资金）', effect: () => ({ tech: -25, users: -20, money: 60 }) },
+                    { text: '出售资产（-30技术，-15士气，+50资金）', effect: () => ({ tech: -30, morale: -15, money: 50 }) },
+                    { text: '拖欠工资（-40士气，+30资金）', effect: () => ({ morale: -40, money: 30 }) }
+                ]
+            },
+            talent_exodus: {
+                title: '🚪 团队离职潮危机',
+                description: '核心员工集体提出离职，团队士气跌至冰点，必须立即挽留！',
+                choices: [
+                    { text: '大幅加薪（-60资金，+20士气）', effect: () => ({ money: -60, morale: 20 }) },
+                    { text: '股权激励（-30资金，+15士气，-10用户）', effect: () => ({ money: -30, morale: 15, users: -10 }) },
+                    { text: '放手重建（-35士气，-25技术）', effect: () => ({ morale: -35, tech: -25 }) }
+                ]
+            }
+        };
+
+        // 投资人干预事件（自主权低于30%时触发）
+        const investorInterventionEvents = [
+            {
+                title: '📋 投资人要求削减成本',
+                description: '投资人认为公司烧钱太快，要求立即削减运营成本。你必须执行他们的决定。',
+                effect: () => {
+                    gameState.money += 40;
+                    gameState.morale -= 25;
+                    gameState.investorSatisfaction += 10;
+                    return '削减成本：+40资金，-25士气，投资人满意度+10';
+                }
+            },
+            {
+                title: '👔 投资人强制招聘高管',
+                description: '投资人空降了一位高管，团队对此非常不满。',
+                effect: () => {
+                    gameState.money -= 30;
+                    gameState.morale -= 20;
+                    gameState.tech += 10;
+                    gameState.investorSatisfaction += 15;
+                    return '空降高管：-30资金，-20士气，+10技术，投资人满意度+15';
+                }
+            },
+            {
+                title: '🎯 投资人要求调整战略',
+                description: '投资人认为当前战略有问题，强制要求调整方向。',
+                effect: () => {
+                    gameState.users -= 15;
+                    gameState.tech -= 10;
+                    gameState.money += 50;
+                    gameState.investorSatisfaction += 20;
+                    return '战略调整：-15用户，-10技术，+50资金，投资人满意度+20';
+                }
+            },
+            {
+                title: '💼 投资人要求加速变现',
+                description: '投资人要求尽快实现盈利，必须牺牲长期发展。',
+                effect: () => {
+                    gameState.money += 60;
+                    gameState.users -= 20;
+                    gameState.morale -= 15;
+                    gameState.investorSatisfaction += 25;
+                    return '加速变现：+60资金，-20用户，-15士气，投资人满意度+25';
+                }
+            }
+        ];
+
+        // 竞争对手攻势事件（拒绝融资后触发）
+        const competitorAttackEvents = [
+            {
+                title: '⚔️ 竞争对手价格战',
+                description: '竞争对手获得投资后发起价格战，大幅降价抢夺市场。你必须应对，否则将失去大量用户。',
+                choices: [
+                    { text: '跟进降价（-40资金，保持用户）', effect: () => ({ money: -40 }) },
+                    { text: '提升服务质量（-50资金，-20技术，+10用户）', effect: () => ({ money: -50, tech: -20, users: 10 }) },
+                    { text: '放弃低端市场（-30用户，-15士气）', effect: () => ({ users: -30, morale: -15 }) }
+                ]
+            },
+            {
+                title: '⚔️ 竞争对手挖角',
+                description: '竞争对手资金充裕，开始高薪挖角你的核心员工。团队人心浮动。',
+                choices: [
+                    { text: '加薪挽留（-50资金，+10士气）', effect: () => ({ money: -50, morale: 10 }) },
+                    { text: '股权激励（-30资金，-10%股权，+15士气）', effect: () => ({ money: -30, morale: 15 }), extraEffect: () => { gameState.equity = Math.max(10, gameState.equity - 10); gameState.autonomy = gameState.equity; } },
+                    { text: '放手离开（-25士气，-20技术）', effect: () => ({ morale: -25, tech: -20 }) }
+                ]
+            },
+            {
+                title: '⚔️ 竞争对手技术封锁',
+                description: '竞争对手申请了关键技术专利，对你的产品形成技术封锁。',
+                choices: [
+                    { text: '购买专利授权（-60资金）', effect: () => ({ money: -60 }) },
+                    { text: '绕道开发（-60资金，-30技术，-20士气）', effect: () => ({ money: -60, tech: -30, morale: -20 }) },
+                    { text: '法律诉讼（-80资金，-25士气）', effect: () => ({ money: -80, morale: -25 }) }
+                ]
+            },
+            {
+                title: '⚔️ 竞争对手舆论战',
+                description: '竞争对手在媒体上抹黑你的产品，用户信任度下降。',
+                choices: [
+                    { text: '公关反击（-40资金，-10士气）', effect: () => ({ money: -40, morale: -10 }) },
+                    { text: '用产品说话（-30资金，-25技术，+10用户）', effect: () => ({ money: -30, tech: -25, users: 10 }) },
+                    { text: '忍气吞声（-20用户，-20士气）', effect: () => ({ users: -20, morale: -20 }) }
+                ]
+            },
+            {
+                title: '⚔️ 竞争对手市场扩张',
+                description: '竞争对手利用资金优势快速扩张，抢占你的目标市场。',
+                choices: [
+                    { text: '跟进扩张（-70资金，-15士气）', effect: () => ({ money: -70, morale: -15 }) },
+                    { text: '深耕现有市场（-40资金，-20用户）', effect: () => ({ money: -40, users: -20 }) },
+                    { text: '战略收缩（-35用户，-25士气）', effect: () => ({ users: -35, morale: -25 }) }
+                ]
+            }
+        ];
+
+        // 市场竞争事件（接受融资后触发，温和版本）
+        const marketCompetitionEvents = [
+            {
+                title: '📊 市场竞争加剧',
+                description: '市场进入快速扩张期，你和竞争对手都在争夺市场份额。',
+                choices: [
+                    { text: '加大营销投入（-30资金，+15用户）', effect: () => ({ money: -30, users: 15 }) },
+                    { text: '技术创新（-35资金，-15技术，+10用户）', effect: () => ({ money: -35, tech: -15, users: 10 }) },
+                    { text: '稳健发展（-10用户）', effect: () => ({ users: -10 }) }
+                ]
+            },
+            {
+                title: '📊 行业整合趋势',
+                description: '行业开始整合，大公司纷纷并购小公司。你需要做出选择。',
+                choices: [
+                    { text: '并购小公司（-50资金，+10技术，+10用户）', effect: () => ({ money: -50, tech: 10, users: 10 }) },
+                    { text: '保持独立（-15用户）', effect: () => ({ users: -15 }) },
+                    { text: '寻求合作（-20资金，+5技术）', effect: () => ({ money: -20, tech: 5 }) }
+                ]
+            },
+            {
+                title: '📊 市场份额争夺',
+                description: '竞争对手推出新功能，你需要快速响应。',
+                choices: [
+                    { text: '快速跟进（-40资金，-20技术）', effect: () => ({ money: -40, tech: -20 }) },
+                    { text: '差异化竞争（-35资金，-15技术，+10用户）', effect: () => ({ money: -35, tech: -15, users: 10 }) },
+                    { text: '观望等待（-15用户，-10士气）', effect: () => ({ users: -15, morale: -10 }) }
+                ]
+            }
+        ];
+
+        // 事件库
+        const events = [
+            {
+                title: '投资人会议',
+                description: '一位投资人对你的项目感兴趣，但他要求看到更好的技术实力或用户增长。',
+                choices: [
+                    { text: '展示技术实力（-10技术，+50资金）', effect: () => ({ money: 50, tech: -10 }) },
+                    { text: '展示用户数据（-10用户，+40资金）', effect: () => ({ money: 40, users: -10 }) },
+                    { text: '婉拒投资（+5士气）', effect: () => ({ morale: 5 }) }
+                ]
+            },
+            {
+                title: '技术难题',
+                description: '产品遇到了技术瓶颈，需要投入资源解决。',
+                choices: [
+                    { text: '加班解决（-15士气，+20技术）', effect: () => ({ morale: -15, tech: 20 }) },
+                    { text: '外包解决（-30资金，+10技术）', effect: () => ({ money: -30, tech: 10 }) },
+                    { text: '暂时搁置（-10用户）', effect: () => ({ users: -10 }) }
+                ]
+            },
+            {
+                title: '竞争对手',
+                description: '竞争对手推出了类似产品，你需要快速应对。',
+                choices: [
+                    { text: '降价促销（-20资金，+15用户）', effect: () => ({ money: -20, users: 15 }) },
+                    { text: '技术创新（-25资金，+15技术）', effect: () => ({ money: -25, tech: 15 }) },
+                    { text: '保持现状（-5用户，-5士气）', effect: () => ({ users: -5, morale: -5 }) }
+                ]
+            },
+            {
+                title: '团队冲突',
+                description: '团队内部出现了分歧，影响了工作效率。',
+                choices: [
+                    { text: '团建活动（-15资金，+20士气）', effect: () => ({ money: -15, morale: 20 }) },
+                    { text: '调解沟通（-5技术，+10士气）', effect: () => ({ tech: -5, morale: 10 }) },
+                    { text: '强制执行（-15士气，+10技术）', effect: () => ({ morale: -15, tech: 10 }) }
+                ]
+            },
+            {
+                title: '用户反馈',
+                description: '收到了大量用户反馈，有好有坏。',
+                choices: [
+                    { text: '立即改进（-20资金，+25用户）', effect: () => ({ money: -20, users: 25 }) },
+                    { text: '优先修复bug（-10士气，+15技术）', effect: () => ({ morale: -10, tech: 15 }) },
+                    { text: '暂缓处理（-15用户）', effect: () => ({ users: -15 }) }
+                ]
+            },
+            {
+                title: '媒体报道',
+                description: '有媒体想要报道你的公司，这是个好机会。',
+                choices: [
+                    { text: '接受采访（-10资金，+20用户，+10士气）', effect: () => ({ money: -10, users: 20, morale: 10 }) },
+                    { text: '付费推广（-40资金，+30用户）', effect: () => ({ money: -40, users: 30 }) },
+                    { text: '低调处理（+5士气）', effect: () => ({ morale: 5 }) }
+                ]
+            },
+            {
+                title: '资金紧张',
+                description: '公司账户余额不足，需要想办法筹集资金。',
+                choices: [
+                    { text: '削减开支（-10士气，+20资金）', effect: () => ({ morale: -10, money: 20 }) },
+                    { text: '寻求贷款（+30资金，-5用户）', effect: () => ({ money: 30, users: -5 }) },
+                    { text: '出售资产（-10技术，+25资金）', effect: () => ({ tech: -10, money: 25 }) }
+                ]
+            },
+            {
+                title: '新功能开发',
+                description: '团队提出了一个创新的新功能想法。',
+                choices: [
+                    { text: '全力开发（-30资金，-10士气，+25技术）', effect: () => ({ money: -30, morale: -10, tech: 25 }) },
+                    { text: '小规模测试（-15资金，+10技术）', effect: () => ({ money: -15, tech: 10 }) },
+                    { text: '暂不开发（-5士气）', effect: () => ({ morale: -5 }) }
+                ]
+            },
+            {
+                title: '人才流失',
+                description: '有核心员工收到了其他公司的offer。',
+                choices: [
+                    { text: '加薪留人（-25资金，+15士气）', effect: () => ({ money: -25, morale: 15 }) },
+                    { text: '情感挽留（+5士气，-5技术）', effect: () => ({ morale: 5, tech: -5 }) },
+                    { text: '放手离开（-20士气，-10技术）', effect: () => ({ morale: -20, tech: -10 }) }
+                ]
+            }
+        ];
+
+        // 小事件库（每5回合触发）
+        const miniEvents = [
+            {
+                title: '💡 灵感迸发',
+                description: '团队成员提出了一个小创意。',
+                effect: () => ({ tech: 5, morale: 3 })
+            },
+            {
+                title: '☕ 咖啡机坏了',
+                description: '办公室咖啡机坏了，影响了工作效率。',
+                effect: () => ({ morale: -5 })
+            },
+            {
+                title: '📰 小型媒体报道',
+                description: '一家小媒体报道了你的产品。',
+                effect: () => ({ users: 8 })
+            },
+            {
+                title: '🐛 发现小bug',
+                description: '用户反馈了一个小bug，需要修复。',
+                effect: () => ({ tech: -3, users: -2 })
+            },
+            {
+                title: '🎉 员工生日',
+                description: '今天是员工生日，大家一起庆祝。',
+                effect: () => ({ morale: 8, money: -5 })
+            },
+            {
+                title: '💰 意外收入',
+                description: '收到了一笔小额退税。',
+                effect: () => ({ money: 15 })
+            },
+            {
+                title: '📧 垃圾邮件',
+                description: '邮箱被垃圾邮件淹没，浪费了时间。',
+                effect: () => ({ morale: -3 })
+            },
+            {
+                title: '🌟 用户好评',
+                description: '收到了用户的好评，团队很开心。',
+                effect: () => ({ morale: 5, users: 5 })
+            }
+        ];
+
+        // 剧情大事件（在特定回合触发）
+        const storyEvents = [
+            { turn: 3, title: '📝 第一个客户', description: '你获得了第一个付费客户！虽然金额不大，但这是一个重要的里程碑。', effect: () => ({ money: 20, morale: 10, users: 5 }) },
+            { turn: 7, title: '🎓 技术突破', description: '团队攻克了一个关键技术难题，产品性能大幅提升！', effect: () => ({ tech: 25, morale: 8 }) },
+            { turn: 12, title: '📱 产品上线', description: '经过数月努力，产品正式上线！用户开始涌入。', effect: () => ({ users: 30, morale: 15 }) },
+            { turn: 18, title: '💼 天使投资', description: '一位天使投资人看中了你的项目，愿意投资！', effect: () => ({ money: 100, morale: 20 }) },
+            { turn: 23, title: '🏆 行业奖项', description: '你的产品获得了行业创新奖，知名度大增！', effect: () => ({ users: 40, morale: 15, tech: 10 }) },
+            { turn: 28, title: '🤝 战略合作', description: '与一家大公司达成战略合作，获得资源支持！', effect: () => ({ money: 80, users: 25, tech: 15 }) },
+            { turn: 35, title: '📈 用户突破', description: '用户数突破10万！这是一个重要的里程碑。', effect: () => ({ users: 50, morale: 20, money: 50 }) },
+            { turn: 42, title: '🌍 国际化', description: '产品开始进军国际市场，打开新的增长空间！', effect: () => ({ users: 35, money: 60, tech: 20 }) },
+            { turn: 48, title: '💰 B轮融资', description: '成功完成B轮融资，获得充足的发展资金！', effect: () => ({ money: 150, morale: 25 }) },
+            // 第50回合改为强制融资抉择，不在这里触发
+            { turn: 55, title: '🏢 新办公室', description: '搬入更大的办公室，团队士气高涨！', effect: () => ({ morale: 30, money: -50 }) },
+            // 第60回合：并购机会（阶段性事件）
+            { turn: 62, title: '🎯 市场领先', description: '你的产品成为细分市场的领导者！', effect: () => ({ users: 45, tech: 25, morale: 20 }) },
+            { turn: 68, title: '🔬 研发中心', description: '建立了专门的研发中心，技术实力大增！', effect: () => ({ tech: 40, money: -60, morale: 15 }) },
+            // 第70回合：战略选择（阶段性事件）
+            { turn: 75, title: '📊 盈利突破', description: '公司首次实现季度盈利！', effect: () => ({ money: 120, morale: 30 }) },
+            // 第80回合：监管挑战（阶段性事件）
+            { turn: 82, title: '🌟 明星团队', description: '招募到行业顶尖人才，团队实力质的飞跃！', effect: () => ({ tech: 35, morale: 25, money: -80 }) },
+            { turn: 88, title: '🚀 产品2.0', description: '推出革命性的2.0版本，用户反响热烈！', effect: () => ({ users: 60, tech: 30, morale: 20 }) },
+            // 第90回合：IPO冲刺（阶段性事件）
+            { turn: 92, title: '💎 C轮融资', description: '完成C轮融资，估值突破10亿！', effect: () => ({ money: 200, morale: 35 }) },
+            { turn: 95, title: '🏆 行业标杆', description: '成为行业标杆企业，被写入商学院案例！', effect: () => ({ users: 50, morale: 30, tech: 25 }) },
+            { turn: 98, title: '🌐 生态系统', description: '建立完整的产品生态系统，形成竞争壁垒！', effect: () => ({ tech: 40, users: 55, money: 100 }) },
+            { turn: 99, title: '📢 IPO筹备', description: '董事会决定启动IPO计划，准备上市！', effect: () => ({ money: 150, morale: 40 }) },
+            { turn: 100, title: '🎊 成功上市', description: '恭喜！公司成功上市，你成为了创业传奇！', effect: () => ({ money: 300, morale: 50, tech: 50, users: 80 }) }
+        ];
+
+        // 关卡挑战（每10回合触发竞争对手）- 扩展到100回合
+        const milestones = [
+            {
+                turn: 10,
+                title: '⚔️ 竞争对手出现！',
+                description: '一家强大的竞争对手进入市场，对你的用户造成威胁！你需要做出应对。',
+                choices: [
+                    { text: '价格战（-40资金，保持用户）', effect: () => ({ money: -40 }) },
+                    { text: '技术突破（-30资金，-20技术，+10用户）', effect: () => ({ money: -30, tech: -20, users: 10 }) },
+                    { text: '营销攻势（-35资金，-10士气，+15用户）', effect: () => ({ money: -35, morale: -10, users: 15 }) }
+                ],
+                successReward: () => ({ money: 120 })
+            },
+            {
+                turn: 20,
+                title: '⚔️ 行业巨头入场！',
+                description: '一家行业巨头看中了你的市场，发起了猛烈攻势！',
+                choices: [
+                    { text: '正面对抗（-60资金，-15士气，+20用户）', effect: () => ({ money: -60, morale: -15, users: 20 }) },
+                    { text: '差异化竞争（-50资金，-25技术，+15用户）', effect: () => ({ money: -50, tech: -25, users: 15 }) },
+                    { text: '防守反击（-45资金，-10用户）', effect: () => ({ money: -45, users: -10 }) }
+                ],
+                successReward: () => ({ money: 150 })
+            },
+            {
+                turn: 30,
+                title: '⚔️ 价格战升级！',
+                description: '多家竞争对手联合降价，市场陷入混战！',
+                choices: [
+                    { text: '跟进降价（-70资金，-20用户）', effect: () => ({ money: -70, users: -20 }) },
+                    { text: '提升服务（-60资金，-20士气，+10用户）', effect: () => ({ money: -60, morale: -20, users: 10 }) },
+                    { text: '技术创新（-80资金，-30技术，+25用户）', effect: () => ({ money: -80, tech: -30, users: 25 }) }
+                ],
+                successReward: () => ({ money: 180 })
+            },
+            {
+                turn: 40,
+                title: '⚔️ 恶意竞争！',
+                description: '竞争对手采用不正当手段，试图打击你的声誉！',
+                choices: [
+                    { text: '法律诉讼（-90资金，-25士气）', effect: () => ({ money: -90, morale: -25 }) },
+                    { text: '公关危机处理（-75资金，-15用户）', effect: () => ({ money: -75, users: -15 }) },
+                    { text: '加强产品质量（-85资金，-35技术，+20用户）', effect: () => ({ money: -85, tech: -35, users: 20 }) }
+                ],
+                successReward: () => ({ money: 200 })
+            },
+            {
+                turn: 50,
+                title: '💼 融资窗口期',
+                description: '市场进入快速扩张期，投资人主动找上门来。这是一个关键的战略选择时刻：接受融资获得资金优势，还是保持独立但面对资金充裕的竞争对手？',
+                choices: [
+                    {
+                        text: '接受融资（+250资金，-25%股权，竞争对手也会融资）',
+                        effect: () => ({ money: 250 }),
+                        isFundingChoice: true,
+                        acceptFunding: true
+                    },
+                    {
+                        text: '拒绝融资（保持100%股权，但竞争对手将获得全部投资）',
+                        effect: () => ({}),
+                        isFundingChoice: true,
+                        acceptFunding: false
+                    }
+                ],
+                successReward: () => ({ money: 0 }), // 不给额外奖励
+                isFundingDecision: true
+            },
+            {
+                turn: 60,
+                title: '🤝 并购机会',
+                description: '一家小型竞争对手陷入困境，你有机会并购它。这将消除一个威胁，但需要大量资金。',
+                choices: [
+                    { text: '并购竞争对手（-150资金，+20技术，+20用户，减轻竞争压力）', effect: () => ({ money: -150, tech: 20, users: 20 }), reducesCompetition: true },
+                    { text: '继续竞争（竞争强度+30%）', effect: () => ({}), increasesCompetition: true },
+                    { text: '寻求合作（-80资金，+10技术，竞争强度不变）', effect: () => ({ money: -80, tech: 10 }) }
+                ],
+                successReward: () => ({ money: 0 }),
+                isStrategicEvent: true
+            },
+            {
+                turn: 70,
+                title: '⚖️ 监管挑战',
+                description: '新的行业监管政策出台，对你的业务模式提出挑战。必须投入资源应对。',
+                choices: [
+                    { text: '全面合规改造（-100资金，-30士气，-20用户）', effect: () => ({ money: -100, morale: -30, users: -20 }) },
+                    { text: '业务转型（-120资金，-40技术，+15用户）', effect: () => ({ money: -120, tech: -40, users: 15 }) },
+                    { text: '游说沟通（-80资金，-25士气）', effect: () => ({ money: -80, morale: -25 }) }
+                ],
+                successReward: () => ({ money: 0 }),
+                isStrategicEvent: true
+            },
+            {
+                turn: 80,
+                title: '📊 市场饱和',
+                description: '市场增长放缓，竞争进入白热化阶段。必须做出战略调整。',
+                choices: [
+                    { text: '开拓新市场（-150资金，-35士气，+40用户）', effect: () => ({ money: -150, morale: -35, users: 40 }) },
+                    { text: '深耕存量（-100资金，-45技术，+25用户）', effect: () => ({ money: -100, tech: -45, users: 25 }) },
+                    { text: '多元化发展（-130资金，-40士气，-25技术）', effect: () => ({ money: -130, morale: -40, tech: -25 }) }
+                ],
+                successReward: () => ({ money: 0 }),
+                isStrategicEvent: true
+            },
+            {
+                turn: 90,
+                title: '🚀 IPO冲刺',
+                description: '距离上市只剩最后10回合！必须确保所有指标达标。需要满足：资金>100，技术>150，用户>150，士气>100。',
+                choices: [
+                    { text: '全力冲刺（-180资金，-45士气，-60技术，+50用户）', effect: () => ({ money: -180, morale: -45, tech: -60, users: 50 }) },
+                    { text: '稳健推进（-120资金，-35士气，-35技术）', effect: () => ({ money: -120, morale: -35, tech: -35 }) },
+                    { text: '战略调整（-150资金，-50士气，+30用户）', effect: () => ({ money: -150, morale: -50, users: 30 }) }
+                ],
+                successReward: () => ({ money: 0 }),
+                isStrategicEvent: true,
+                checkIPORequirements: true
+            },
+            {
+                turn: 60,
+                title: '⚔️ 新兴势力',
+                description: '一批新兴创业公司崛起，试图颠覆市场格局！',
+                choices: [
+                    { text: '收购整合（-120资金，+25用户，+15技术）', effect: () => ({ money: -120, users: 25, tech: 15 }) },
+                    { text: '技术碾压（-100资金，-45技术，+30用户）', effect: () => ({ money: -100, tech: -45, users: 30 }) },
+                    { text: '生态封锁（-90资金，-20士气）', effect: () => ({ money: -90, morale: -20 }) }
+                ],
+                successReward: () => ({ money: 280 })
+            },
+            {
+                turn: 70,
+                title: '⚔️ 国际巨头',
+                description: '国际科技巨头进入中国市场，直接威胁你的地位！',
+                choices: [
+                    { text: '本土化优势（-130资金，-30士气，+35用户）', effect: () => ({ money: -130, morale: -30, users: 35 }) },
+                    { text: '技术对抗（-140资金，-50技术，+25用户）', effect: () => ({ money: -140, tech: -50, users: 25 }) },
+                    { text: '战略联盟（-110资金，-25用户）', effect: () => ({ money: -110, users: -25 }) }
+                ],
+                successReward: () => ({ money: 320 })
+            },
+            {
+                turn: 80,
+                title: '⚔️ 监管挑战',
+                description: '新的行业监管政策出台，对你的业务模式提出挑战！',
+                choices: [
+                    { text: '合规改造（-150资金，-35士气，-30用户）', effect: () => ({ money: -150, morale: -35, users: -30 }) },
+                    { text: '业务转型（-160资金，-55技术，+20用户）', effect: () => ({ money: -160, tech: -55, users: 20 }) },
+                    { text: '游说沟通（-120资金，-40士气）', effect: () => ({ money: -120, morale: -40 }) }
+                ],
+                successReward: () => ({ money: 350 })
+            },
+            {
+                turn: 90,
+                title: '⚔️ 市场饱和',
+                description: '市场增长放缓，竞争进入白热化阶段！',
+                choices: [
+                    { text: '开拓新市场（-170资金，-40士气，+40用户）', effect: () => ({ money: -170, morale: -40, users: 40 }) },
+                    { text: '深耕存量（-150资金，-60技术，+30用户）', effect: () => ({ money: -150, tech: -60, users: 30 }) },
+                    { text: '多元化发展（-180资金，-50士气，-30技术）', effect: () => ({ money: -180, morale: -50, tech: -30 }) }
+                ],
+                successReward: () => ({ money: 400 })
+            },
+            {
+                turn: 100,
+                title: '🏆 最终挑战',
+                description: '这是最后的考验！能否成功上市，就看这一战了！',
+                choices: [
+                    { text: '全力冲刺（-200资金，-50士气，-70技术，+50用户）', effect: () => ({ money: -200, morale: -50, tech: -70, users: 50 }) },
+                    { text: '稳健推进（-150资金，-40士气，-40技术）', effect: () => ({ money: -150, morale: -40, tech: -40 }) },
+                    { text: '战略调整（-180资金，-60士气，+30用户）', effect: () => ({ money: -180, morale: -60, users: 30 }) }
+                ],
+                successReward: () => ({ money: 500 }),
+                isFinal: true
+            }
+        ];
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('turn').textContent = gameState.turn;
+            document.getElementById('money').textContent = gameState.money.toFixed(1);
+            document.getElementById('morale').textContent = Math.floor(gameState.morale);
+            document.getElementById('tech').textContent = Math.floor(gameState.tech);
+            document.getElementById('users').textContent = Math.floor(gameState.users);
+
+            document.getElementById('money-bar').style.width = Math.max(0, Math.min(100, gameState.money)) + '%';
+            document.getElementById('morale-bar').style.width = Math.max(0, Math.min(100, gameState.morale)) + '%';
+            document.getElementById('tech-bar').style.width = Math.max(0, Math.min(100, gameState.tech)) + '%';
+            document.getElementById('users-bar').style.width = Math.max(0, Math.min(100, gameState.users)) + '%';
+
+            // 更新投资人关系
+            document.getElementById('investor-satisfaction').textContent = Math.floor(gameState.investorSatisfaction);
+            document.getElementById('equity').textContent = Math.floor(gameState.equity) + '%';
+            document.getElementById('autonomy').textContent = Math.floor(gameState.autonomy) + '%';
+            document.getElementById('funding-rounds').textContent = gameState.fundingRounds;
+
+            // 更新进度条
+            updateProgressBar();
+
+            // 检查突破
+            checkBreakthroughs();
+        }
+
+        // 更新进度条
+        function updateProgressBar() {
+            const progress = (gameState.turn / 100) * 100;
+            const completedMilestones = Math.floor(gameState.turn / 10);
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-bar').textContent = Math.floor(progress) + '%';
+            document.getElementById('progress-text').textContent = `${gameState.turn}/100 回合 | ${completedMilestones}/10 关卡`;
+
+            // 更新资源上限提示
+            updateResourceCapInfo();
+        }
+
+        // 更新资源上限提示
+        function updateResourceCapInfo() {
+            let currentCap = 150;
+            let nextCap = 250;
+            let nextCapTurn = 20;
+
+            if (gameState.turn >= 80) {
+                currentCap = 500;
+                document.getElementById('resource-cap-info').innerHTML = '💡 当前资源上限：<strong>500</strong>（已达最高）';
+            } else if (gameState.turn >= 50) {
+                currentCap = 400;
+                nextCap = 500;
+                nextCapTurn = 80;
+                document.getElementById('current-cap').textContent = currentCap;
+                document.getElementById('next-cap').textContent = nextCap;
+                document.getElementById('next-cap-turn').textContent = nextCapTurn;
+            } else if (gameState.turn >= 20) {
+                currentCap = 250;
+                nextCap = 400;
+                nextCapTurn = 50;
+                document.getElementById('current-cap').textContent = currentCap;
+                document.getElementById('next-cap').textContent = nextCap;
+                document.getElementById('next-cap-turn').textContent = nextCapTurn;
+            } else {
+                document.getElementById('current-cap').textContent = currentCap;
+                document.getElementById('next-cap').textContent = nextCap;
+                document.getElementById('next-cap-turn').textContent = nextCapTurn;
+            }
+        }
+
+        // 检查突破
+        function checkBreakthroughs() {
+            ['money', 'morale', 'tech', 'users'].forEach(resource => {
+                if (gameState[resource] >= 200 && !gameState.breakthroughs[resource]) {
+                    gameState.breakthroughs[resource] = true;
+                    showBreakthroughModal(resource);
+                }
+            });
+        }
+
+        // 显示突破模态窗口
+        function showBreakthroughModal(resource) {
+            const breakthrough = breakthroughs[resource];
+
+            setTimeout(() => {
+                alert(breakthrough.unlockMessage + '\n\n请打开菜单选择天赋！');
+                // 高亮菜单按钮
+                const menuBtn = document.querySelector('.menu-btn');
+                menuBtn.style.animation = 'pulse 1s ease-in-out 3';
+                menuBtn.textContent = '📊 菜单 (新突破！)';
+                setTimeout(() => {
+                    menuBtn.textContent = '📊 菜单';
+                }, 5000);
+            }, 500);
+        }
+
+        // 选择天赋
+        function selectTalent(resource, talentIndex) {
+            if (gameState.talents[resource]) {
+                alert('该资源已经选择过天赋了！');
+                return;
+            }
+
+            const talent = breakthroughs[resource].talents[talentIndex];
+            gameState.talents[resource] = talent;
+            alert(`成功选择天赋：${talent.name}\n${talent.description}`);
+            renderBreakthroughs();
+        }
+
+        // 应用天赋效果
+        function applyTalentEffects() {
+            Object.values(gameState.talents).forEach(talent => {
+                if (talent.effect) {
+                    talent.effect();
+                }
+            });
+        }
+
+        // 打开模态窗口
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            updateModalStats();
+            renderStoryList();
+            renderBreakthroughs();
+        }
+
+        // 关闭模态窗口
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // 切换标签页
+        function switchTab(tabName) {
+            // 更新标签按钮
+            document.querySelectorAll('.modal-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 更新内容
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // 更新统计数据
+        function updateModalStats() {
+            const playTime = Math.floor((Date.now() - gameState.startTime) / 60000);
+            const upgradeCount = Object.values(gameState.upgrades).reduce((a,b) => a+b, 0);
+            const completedMilestones = Math.floor(gameState.turn / 10);
+
+            document.getElementById('stat-turn').textContent = gameState.turn;
+            document.getElementById('stat-max-turn').textContent = Math.max(gameState.turn, gameState.maxTurn);
+            document.getElementById('stat-time').textContent = playTime + '分钟';
+            document.getElementById('stat-achievements').textContent = `${gameState.achievements.length}/12`;
+            document.getElementById('stat-cards').textContent = gameState.usedCards.length;
+            document.getElementById('stat-upgrades').textContent = upgradeCount;
+            document.getElementById('stat-story').textContent = `${gameState.storyEvents.length}/20`;
+            document.getElementById('stat-milestones').textContent = `${completedMilestones}/10`;
+        }
+
+        // 渲染剧情列表
+        function renderStoryList() {
+            const storyList = document.getElementById('story-list');
+            const triggeredStories = storyEvents.filter(e => gameState.storyEvents.includes(e.turn));
+
+            if (triggeredStories.length === 0) {
+                storyList.innerHTML = '<p style="color: #999; text-align: center;">还没有触发任何剧情事件</p>';
+                return;
+            }
+
+            let html = '';
+            triggeredStories.forEach(story => {
+                html += `
+                    <div class="story-item">
+                        <h4>第${story.turn}回合：${story.title}</h4>
+                        <p>${story.description}</p>
+                    </div>
+                `;
+            });
+            storyList.innerHTML = html;
+        }
+
+        // 渲染突破列表
+        function renderBreakthroughs() {
+            const breakthroughList = document.getElementById('breakthrough-list');
+            let html = '';
+
+            ['money', 'morale', 'tech', 'users'].forEach(resource => {
+                const breakthrough = breakthroughs[resource];
+                const unlocked = gameState.breakthroughs[resource];
+                const selectedTalent = gameState.talents[resource];
+
+                html += `
+                    <div style="margin-bottom: 20px; padding: 15px; background: ${unlocked ? '#e8f5e9' : '#f5f5f5'}; border-radius: 8px;">
+                        <h3>${breakthrough.name} ${unlocked ? '✅' : '🔒'}</h3>
+                        <p style="color: #666; margin: 10px 0;">${breakthrough.description}</p>
+                `;
+
+                if (unlocked) {
+                    if (selectedTalent) {
+                        html += `<p style="color: #27ae60; font-weight: bold;">已选择：${selectedTalent.name} - ${selectedTalent.description}</p>`;
+                    } else {
+                        html += '<div class="talent-grid">';
+                        breakthrough.talents.forEach((talent, index) => {
+                            html += `
+                                <div class="talent-card" onclick="selectTalent('${resource}', ${index})">
+                                    <h4>${talent.name}</h4>
+                                    <p>${talent.description}</p>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                } else {
+                    html += `<p style="color: #999;">需要${resource === 'money' ? '资金' : resource === 'morale' ? '士气' : resource === 'tech' ? '技术' : '用户'}达到200解锁</p>`;
+                }
+
+                html += '</div>';
+            });
+
+            breakthroughList.innerHTML = html;
+        }
+
+        // 渲染升级选项
+        function renderUpgrades() {
+            const upgradesContainer = document.getElementById('upgrades');
+            upgradesContainer.innerHTML = '';
+
+            upgradeOptions.forEach(upgrade => {
+                const count = gameState.upgrades[upgrade.id];
+                const card = document.createElement('div');
+                card.className = 'upgrade-card';
+                card.innerHTML = `
+                    <h3>${upgrade.name} ${count > 0 ? `(已拥有 ${count})` : ''}</h3>
+                    <p style="color: #27ae60; margin-bottom: 5px;">✓ ${upgrade.description}</p>
+                    <p style="color: #e74c3c; font-size: 0.7em;">✗ ${upgrade.sideEffect}</p>
+                    <button class="upgrade-btn" onclick="buyUpgrade('${upgrade.id}')" ${gameState.money < upgrade.cost ? 'disabled' : ''}>
+                        购买 (${upgrade.cost} 资金)
+                    </button>
+                `;
+                upgradesContainer.appendChild(card);
+            });
+        }
+
+        // 购买升级
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgradeOptions.find(u => u.id === upgradeId);
+            let cost = upgrade.cost;
+
+            // 应用折扣
+            if (gameState.discountCount && gameState.discountCount > 0) {
+                cost = Math.floor(cost / 2);
+                gameState.discountCount--;
+            }
+
+            // 成本大师天赋（永久8折）
+            if (gameState.talents.money?.id === 'cost_master') {
+                cost = Math.floor(cost * 0.8);
+            }
+
+            if (gameState.money >= cost) {
+                gameState.money -= cost;
+                gameState.upgrades[upgradeId]++;
+                updateUI();
+                renderUpgrades();
+                renderAbilityCards();
+                checkAchievements();
+            }
+        }
+
+        // 检查游戏结束
+        function checkGameOver() {
+            if (gameState.money <= 0) {
+                const totalUpgrades = Object.values(gameState.upgrades).reduce((a,b) => a+b, 0);
+                const scaleCost = totalUpgrades * 2;
+                endGame(`资金耗尽！公司破产了。\n\n破产原因分析：\n- 拥有${totalUpgrades}个升级\n- 每回合规模成本：${scaleCost}资金\n- 升级负面效果消耗过大\n- 资金增长无法覆盖支出`);
+                return true;
+            }
+            if (gameState.morale <= 0) {
+                endGame('团队士气崩溃！所有员工都离职了。\n\n失败原因：士气降至0，团队解散。');
+                return true;
+            }
+            if (gameState.tech <= 0) {
+                endGame('技术水平太低！产品无法维持运营。\n\n失败原因：技术水平降至0，产品崩溃。');
+                return true;
+            }
+            if (gameState.users <= 0) {
+                endGame('用户流失殆尽！没有人使用你的产品了。\n\n失败原因：用户满意度降至0，市场失败。');
+                return true;
+            }
+            return false;
+        }
+
+        // 游戏结束
+        function endGame(reason, isVictory = false) {
+            document.getElementById('event-card').classList.add('hidden');
+            document.getElementById('upgrades-section').classList.add('hidden');
+            const gameOverDiv = document.getElementById('game-over');
+            gameOverDiv.classList.remove('hidden');
+
+            if (isVictory) {
+                gameOverDiv.querySelector('h2').textContent = '🎉 胜利！';
+                gameOverDiv.querySelector('h2').style.color = '#27ae60';
+            }
+
+            document.getElementById('game-over-reason').textContent = reason;
+            document.getElementById('final-turn').textContent = gameState.turn;
+
+            // 显示成就
+            const achievementText = gameState.achievements.length > 0
+                ? `\n\n🏆 解锁成就：${gameState.achievements.length}个`
+                : '';
+            document.getElementById('game-over-reason').textContent += achievementText;
+        }
+
+        // 检查成就
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (!gameState.achievements.includes(achievement.id) && achievement.check()) {
+                    gameState.achievements.push(achievement.id);
+                    // 显示成就解锁提示
+                    setTimeout(() => {
+                        alert(`🏆 成就解锁！\n${achievement.name}\n${achievement.description}`);
+                    }, 500);
+                }
+            });
+        }
+
+        // 使用能力卡
+        function useAbilityCard(cardIndex) {
+            if (cardIndex >= 0 && cardIndex < gameState.abilityCards.length) {
+                const card = gameState.abilityCards[cardIndex];
+                const message = card.effect();
+                gameState.usedCards.push(card.id);
+                gameState.abilityCards.splice(cardIndex, 1);
+
+                updateUI();
+                renderUpgrades();
+                renderAbilityCards();
+
+                alert(message);
+                checkAchievements();
+            }
+        }
+
+        // 渲染能力卡
+        function renderAbilityCards() {
+            const cardsContainer = document.getElementById('ability-cards-container');
+
+            if (gameState.abilityCards.length > 0) {
+                let cardsHTML = '<div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;"><h2 style="font-size: 1.1em; margin-bottom: 10px;">🎴 能力卡</h2><div class="upgrades-grid">';
+                gameState.abilityCards.forEach((card, index) => {
+                    cardsHTML += `
+                        <div class="upgrade-card" style="border-color: #e74c3c;">
+                            <h3 style="color: #e74c3c;">${card.name}</h3>
+                            <p>${card.description}</p>
+                            <button class="upgrade-btn" style="background: #e74c3c;" onclick="useAbilityCard(${index})">
+                                使用
+                            </button>
+                        </div>
+                    `;
+                });
+                cardsHTML += '</div></div>';
+                cardsContainer.innerHTML = cardsHTML;
+            } else {
+                cardsContainer.innerHTML = '';
+            }
+        }
+
+        // 寻求融资
+        function seekFunding() {
+            if (gameState.equity <= 10) {
+                alert('股权已经太少了，无法再融资！');
+                return;
+            }
+
+            // 计算融资金额（基于当前估值）
+            const valuation = gameState.tech + gameState.users + gameState.morale;
+            const fundingAmount = Math.floor(valuation * 0.8 + gameState.fundingRounds * 50);
+
+            // 计算稀释股权（10-25%）
+            const equityDilution = 10 + Math.floor(Math.random() * 15);
+
+            const message = `融资机会\n\n融资金额：${fundingAmount}资金\n稀释股权：${equityDilution}%\n投资人满意度：+20\n\n是否接受融资？`;
+
+            if (confirm(message)) {
+                gameState.money += fundingAmount;
+                gameState.equity -= equityDilution;
+                gameState.autonomy = gameState.equity; // 自主权等于持股比例
+                gameState.investorSatisfaction = Math.min(100, gameState.investorSatisfaction + 20);
+                gameState.totalFunding += fundingAmount;
+                gameState.fundingRounds++;
+
+                updateUI();
+                alert(`融资成功！\n获得${fundingAmount}资金\n持股降至${Math.floor(gameState.equity)}%\n自主权降至${Math.floor(gameState.autonomy)}%`);
+            }
+        }
+
+        // 回购股权
+        function buybackEquity() {
+            if (gameState.equity >= 100) {
+                alert('你已经拥有100%股权！');
+                return;
+            }
+
+            // 计算回购成本（比融资时更贵）
+            const buybackAmount = 10; // 回购10%股权
+            const cost = Math.floor((gameState.tech + gameState.users) * 1.5);
+
+            if (gameState.money < cost) {
+                alert(`资金不足！回购${buybackAmount}%股权需要${cost}资金`);
+                return;
+            }
+
+            const message = `回购股权\n\n回购比例：${buybackAmount}%\n回购成本：${cost}资金\n投资人满意度：-15\n\n是否回购？`;
+
+            if (confirm(message)) {
+                gameState.money -= cost;
+                gameState.equity = Math.min(100, gameState.equity + buybackAmount);
+                gameState.autonomy = gameState.equity;
+                gameState.investorSatisfaction = Math.max(0, gameState.investorSatisfaction - 15);
+
+                updateUI();
+                alert(`回购成功！\n持股提升至${Math.floor(gameState.equity)}%\n自主权提升至${Math.floor(gameState.autonomy)}%`);
+            }
+        }
+
+        // 更新投资人满意度（每回合调用）
+        function updateInvestorSatisfaction() {
+            // 根据公司表现调整满意度
+            const performance = (gameState.tech + gameState.users + gameState.morale) / 3;
+
+            if (performance > 80) {
+                gameState.investorSatisfaction = Math.min(100, gameState.investorSatisfaction + 2);
+            } else if (performance < 40) {
+                gameState.investorSatisfaction = Math.max(0, gameState.investorSatisfaction - 3);
+            }
+
+            // 资金过低会降低满意度
+            if (gameState.money < 30) {
+                gameState.investorSatisfaction = Math.max(0, gameState.investorSatisfaction - 2);
+            }
+        }
+
+        // 显示投资人干预事件
+        function showInvestorIntervention() {
+            const event = investorInterventionEvents[Math.floor(Math.random() * investorInterventionEvents.length)];
+
+            document.getElementById('event-title').textContent = event.title;
+            document.getElementById('event-description').textContent = event.description + '\n\n（自主权不足，无法拒绝）';
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            const button = document.createElement('button');
+            button.className = 'choice-btn';
+            button.textContent = '接受投资人要求';
+            button.onclick = () => {
+                const message = event.effect();
+                alert(message);
+                proceedToNextTurn();
+            };
+            choicesContainer.appendChild(button);
+        }
+
+        // 显示危机事件
+        function showCrisisEvent(crisisType) {
+            const crisis = crisisEvents[crisisType];
+            if (!crisis) return;
+
+            // 增加危机等级（每次+2.5%，上限23%）
+            gameState.crisisLevel = Math.min(0.23, gameState.crisisLevel + 0.025);
+
+            document.getElementById('event-title').textContent = crisis.title;
+            document.getElementById('event-description').textContent = crisis.description;
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            crisis.choices.forEach((choice) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => makeChoice(choice.effect);
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // 显示事件
+        function showEvent() {
+            // 最高优先级：投资人干预（自主权<30%且每5回合触发一次）
+            if (gameState.autonomy < 30 && gameState.turn % 5 === 0) {
+                showInvestorIntervention();
+                return;
+            }
+
+            // 统一危机判定（每回合1次，基础10%，危机升级+2.5%，上限33%）
+            if (gameState.turn > 5) {
+                const crisisChance = Math.min(0.33, 0.1 + gameState.crisisLevel);
+                if (Math.random() < crisisChance) {
+                    // 从危机池随机抽取
+                    const crisisPool = [
+                        // 升级相关危机（权重60%）
+                        { type: 'tech_debt', weight: 0.15 },
+                        { type: 'over_promise', weight: 0.15 },
+                        { type: 'cost_overrun', weight: 0.15 },
+                        { type: 'tech_failure', weight: 0.15 },
+                        // 随机危机（权重40%）
+                        { type: 'cash_crisis', weight: 0.2 },
+                        { type: 'talent_exodus', weight: 0.2 }
+                    ];
+
+                    const random = Math.random();
+                    let cumulative = 0;
+                    let selectedCrisis = crisisPool[0].type;
+
+                    for (const crisis of crisisPool) {
+                        cumulative += crisis.weight;
+                        if (random < cumulative) {
+                            selectedCrisis = crisis.type;
+                            break;
+                        }
+                    }
+
+                    showCrisisEvent(selectedCrisis);
+                    return;
+                }
+            }
+
+            // 检查是否是剧情事件回合
+            const storyEvent = storyEvents.find(e => e.turn === gameState.turn && !gameState.storyEvents.includes(e.turn));
+            if (storyEvent) {
+                showStoryEvent(storyEvent);
+                return;
+            }
+
+            // 竞争对手系统（第50回合后激活）
+            if (gameState.competitorActive && gameState.turn > 50) {
+                // 拒绝融资：每5回合触发竞争对手攻势
+                if (gameState.acceptedFunding50 === false && (gameState.turn - gameState.lastCompetitorAttack) >= 5) {
+                    gameState.lastCompetitorAttack = gameState.turn;
+                    showCompetitorAttack();
+                    return;
+                }
+                // 接受融资：每10回合触发市场竞争
+                if (gameState.acceptedFunding50 === true && gameState.turn % 10 === 0) {
+                    showMarketCompetition();
+                    return;
+                }
+            }
+
+            // 检查是否是关卡回合（每10回合）
+            const milestone = milestones.find(m => m.turn === gameState.turn);
+            if (milestone) {
+                showMilestone(milestone);
+                return;
+            }
+
+            // 检查是否是小事件回合（每5回合，但不是10的倍数）
+            if (gameState.turn % 5 === 0 && gameState.turn % 10 !== 0) {
+                showMiniEvent();
+                return;
+            }
+
+            // 显示普通事件
+            const event = events[Math.floor(Math.random() * events.length)];
+            document.getElementById('event-title').textContent = event.title;
+            document.getElementById('event-description').textContent = event.description;
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            event.choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => makeChoice(choice.effect);
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // 显示剧情事件
+        function showStoryEvent(storyEvent) {
+            document.getElementById('event-title').textContent = storyEvent.title;
+            document.getElementById('event-description').textContent = storyEvent.description;
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            const button = document.createElement('button');
+            button.className = 'choice-btn';
+            button.textContent = '继续前进';
+            button.onclick = () => {
+                const effects = storyEvent.effect();
+                Object.keys(effects).forEach(key => {
+                    gameState[key] += effects[key];
+                });
+                gameState.storyEvents.push(storyEvent.turn);
+
+                // 检查成就
+                checkAchievements();
+
+                proceedToNextTurn();
+            };
+            choicesContainer.appendChild(button);
+        }
+
+        // 显示小事件
+        function showMiniEvent() {
+            const miniEvent = miniEvents[Math.floor(Math.random() * miniEvents.length)];
+            document.getElementById('event-title').textContent = miniEvent.title;
+            document.getElementById('event-description').textContent = miniEvent.description + ' 自动应用效果。';
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            const button = document.createElement('button');
+            button.className = 'choice-btn';
+            button.textContent = '继续';
+            button.onclick = () => {
+                const effects = miniEvent.effect();
+                Object.keys(effects).forEach(key => {
+                    gameState[key] += effects[key];
+                });
+                proceedToNextTurn();
+            };
+            choicesContainer.appendChild(button);
+        }
+
+        // 显示关卡挑战（竞争对手）
+        function showMilestone(milestone) {
+            document.getElementById('event-title').textContent = milestone.title;
+            document.getElementById('event-description').textContent = milestone.description;
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            milestone.choices.forEach((choice) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => {
+                    const effects = choice.effect();
+                    Object.keys(effects).forEach(key => {
+                        gameState[key] += effects[key];
+                    });
+
+                    // 第50回合融资抉择特殊处理
+                    if (gameState.turn === 50) {
+                        if (choice.text.includes('接受融资')) {
+                            gameState.acceptedFunding50 = true;
+                            gameState.competitorActive = true;
+                            gameState.competitorStrength = 100;
+                            gameState.stockDilution = 30; // 稀释30%股份
+                            alert('你接受了融资！\n股份稀释30%，但获得了大量资金。\n未来每10回合将面临市场竞争事件。');
+                        } else {
+                            gameState.acceptedFunding50 = false;
+                            gameState.competitorActive = true;
+                            gameState.competitorStrength = 200;
+                            alert('你拒绝了融资！\n保持了控制权，但竞争对手将更加激进。\n未来每5回合将面临竞争对手攻击。');
+                        }
+                        proceedToNextTurn();
+                        return;
+                    }
+
+                    // 60/70/80/90回合战略事件特殊处理
+                    if ([60, 70, 80, 90].includes(gameState.turn)) {
+                        // 并购机会：降低竞争对手强度
+                        if (choice.text.includes('收购')) {
+                            gameState.competitorStrength = Math.max(0, gameState.competitorStrength - 50);
+                        }
+                        // 监管挑战：增加竞争对手强度
+                        if (choice.text.includes('游说') || choice.text.includes('合规')) {
+                            gameState.competitorStrength += 30;
+                        }
+                        // IPO冲刺：检查条件
+                        if (gameState.turn === 90 && choice.text.includes('全力冲刺')) {
+                            if (gameState.money < 200 || gameState.users < 200) {
+                                alert('IPO条件不足！需要资金≥200且用户≥200');
+                                return;
+                            }
+                        }
+                    }
+
+                    // 应用成功奖励 - 改为分5回合发放
+                    if (milestone.successReward) {
+                        const rewards = milestone.successReward();
+                        const rewardPerTurn = Math.floor(rewards.money / 5);
+                        for (let i = 0; i < 5; i++) {
+                            gameState.pendingRewards.push({ amount: rewardPerTurn });
+                        }
+
+                        // 获得能力卡奖励
+                        const randomCard = abilityCards[Math.floor(Math.random() * abilityCards.length)];
+                        gameState.abilityCards.push(randomCard);
+
+                        // 显示奖励信息
+                        alert(`挑战成功！\n获得能力卡：${randomCard.name}\n资金奖励将在未来5回合发放，每回合${rewardPerTurn}资金`);
+                    }
+
+                    // 检查成就
+                    checkAchievements();
+
+                    // 检查是否是最终关卡
+                    if (milestone.isFinal && gameState.turn >= 100) {
+                        endGame('恭喜！你成功完成了100回合的创业之旅，公司成功上市！你是真正的创业传奇！', true);
+                        return;
+                    }
+
+                    proceedToNextTurn();
+                };
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // 显示竞争对手攻击（拒绝融资路线）
+        function showCompetitorAttack() {
+            const event = competitorAttackEvents[Math.floor(Math.random() * competitorAttackEvents.length)];
+            document.getElementById('event-title').textContent = `⚔️ ${event.title}`;
+            document.getElementById('event-description').textContent = `${event.description}\n\n竞争对手强度：${gameState.competitorStrength}`;
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            event.choices.forEach((choice) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => {
+                    const effects = choice.effect();
+                    Object.keys(effects).forEach(key => {
+                        gameState[key] += effects[key];
+                    });
+
+                    // 应用额外效果（股份稀释）
+                    if (choice.extraEffect) {
+                        choice.extraEffect();
+                    }
+
+                    // 更新最后攻击回合
+                    gameState.lastCompetitorAttack = gameState.turn;
+
+                    proceedToNextTurn();
+                };
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // 显示市场竞争（接受融资路线）
+        function showMarketCompetition() {
+            const event = marketCompetitionEvents[Math.floor(Math.random() * marketCompetitionEvents.length)];
+            document.getElementById('event-title').textContent = `📊 ${event.title}`;
+            document.getElementById('event-description').textContent = event.description;
+
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+
+            event.choices.forEach((choice) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => {
+                    const effects = choice.effect();
+                    Object.keys(effects).forEach(key => {
+                        gameState[key] += effects[key];
+                    });
+
+                    // 更新最后攻击回合
+                    gameState.lastCompetitorAttack = gameState.turn;
+
+                    proceedToNextTurn();
+                };
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // 做出选择
+        function makeChoice(effectFunc) {
+            const effects = effectFunc();
+
+            // 应用效果
+            Object.keys(effects).forEach(key => {
+                gameState[key] += effects[key];
+            });
+
+            proceedToNextTurn();
+        }
+
+        // 进入下一回合
+        function proceedToNextTurn() {
+            // 应用升级效果
+            const efficiencyBonus = gameState.talents.morale?.id === 'efficiency' ? 1.5 : 1;
+            upgradeOptions.forEach(upgrade => {
+                const count = gameState.upgrades[upgrade.id];
+                for (let i = 0; i < count; i++) {
+                    const originalTech = gameState.tech;
+                    const originalUsers = gameState.users;
+                    const originalMorale = gameState.morale;
+
+                    upgrade.effect();
+
+                    // 应用效率加成
+                    if (efficiencyBonus > 1) {
+                        gameState.tech += (gameState.tech - originalTech) * 0.5;
+                        gameState.users += (gameState.users - originalUsers) * 0.5;
+                        gameState.morale += (gameState.morale - originalMorale) * 0.5;
+                    }
+                }
+            });
+
+            // 应用升级负面效果
+            upgradeOptions.forEach(upgrade => {
+                const count = gameState.upgrades[upgrade.id];
+                for (let i = 0; i < count; i++) {
+                    if (upgrade.negativeEffect) {
+                        upgrade.negativeEffect();
+                    }
+                }
+            });
+
+            // 应用天赋效果
+            applyTalentEffects();
+
+            // 更新投资人满意度
+            updateInvestorSatisfaction();
+
+            // 应用资金增长（技术×0.003 + 用户×0.005）
+            let techMultiplier = 0.003;
+            let userMultiplier = 0.005;
+
+            // 技术领先天赋
+            if (gameState.talents.tech?.id === 'tech_leader') {
+                techMultiplier *= 1.5;
+            }
+
+            // 品牌溢价天赋
+            if (gameState.talents.users?.id === 'brand_power') {
+                userMultiplier *= 2;
+            }
+
+            let moneyGrowth = (gameState.tech * techMultiplier) + (gameState.users * userMultiplier);
+
+            // 投资专家天赋
+            if (gameState.talents.money?.id === 'investment_expert') {
+                moneyGrowth *= 1.5;
+            }
+
+            // 双倍收益效果
+            if (gameState.doubleIncomeRounds && gameState.doubleIncomeRounds > 0) {
+                moneyGrowth *= 2;
+                gameState.doubleIncomeRounds--;
+            }
+
+            gameState.money += moneyGrowth;
+
+            // 发放待发放的奖励
+            if (gameState.pendingRewards.length > 0) {
+                const reward = gameState.pendingRewards.shift();
+                gameState.money += reward.amount;
+            }
+
+            // 计算并扣除规模成本（放在资金增长之后）
+            const totalUpgrades = Object.values(gameState.upgrades).reduce((a,b) => a+b, 0);
+            const scaleCost = totalUpgrades * 2;
+            gameState.money -= scaleCost;
+
+            // 动态资源上限（前期150，中期250，后期400，最高500）
+            let resourceCap = 150;
+            if (gameState.turn >= 20 && gameState.turn < 50) {
+                resourceCap = 250;
+            } else if (gameState.turn >= 50 && gameState.turn < 80) {
+                resourceCap = 400;
+            } else if (gameState.turn >= 80) {
+                resourceCap = 500;
+            }
+
+            // 限制数值范围
+            gameState.money = Math.max(0, gameState.money);
+            const moraleMin = gameState.talents.morale?.id === 'loyalty' ? 20 : 0;
+            gameState.morale = Math.max(moraleMin, Math.min(resourceCap, gameState.morale));
+            gameState.tech = Math.max(0, Math.min(resourceCap, gameState.tech));
+            gameState.users = Math.max(0, Math.min(resourceCap, gameState.users));
+
+            updateUI();
+
+            // 检查成就
+            checkAchievements();
+
+            // 检查游戏结束
+            if (checkGameOver()) {
+                return;
+            }
+
+            // 下一回合
+            gameState.turn++;
+            gameState.maxTurn = Math.max(gameState.maxTurn, gameState.turn);
+            renderUpgrades();
+            renderAbilityCards();
+            showEvent();
+        }
+
+        // 开始游戏
+        function startGame() {
+            renderUpgrades();
+            renderAbilityCards();
+            showEvent();
+        }
+
+        // 初始化
+        updateUI();
+        renderUpgrades();
+        renderAbilityCards();
+    </script>
+</body>
+</html>
